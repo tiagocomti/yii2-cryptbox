@@ -1,0 +1,30 @@
+{
+  "name": "tiagocomti/yii2-cryptobox",
+  "type": "yii2-extension",
+
+  "description": "Easy cryptobox for you guys",
+  "keywords": ["yii2", "crypto", "libsodium", "helper"],
+  "license": "BSD-3-Clause",
+  "support": {
+    "issues": "https://github.com/yiisoft/yii2/issues?labels=ext%3Aimagine",
+    "source": "https://github.com/yiisoft/yii2"
+  },
+  "authors": [
+    {
+      "name": "Tiago Alexandre",
+      "email": "tiago.alexandre1336+github@gmail.com"
+    }
+  ],
+
+  "require": {
+    "php": ">=7.2",
+    "yiisoft/yii2": "^2.0.13",
+    "ext-sodium": "*"
+  },
+
+  "autoload": {
+    "psr-4": {
+      "tiagocomti\\cryptobox\\": ""
+    }
+  }
+}
