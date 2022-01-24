@@ -1,7 +1,7 @@
 <?php
-namespace tiagocomti\Cryptbox;
+namespace tiagocomti;
 
-use tiagocomti\Cryptbox\helpers\Strings;
+use tiagocomti\helpers\Strings;
 
 use Yii;
 use yii\db\Exception;
