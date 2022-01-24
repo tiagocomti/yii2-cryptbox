@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-namespace tiagocomti\helpers;
+namespace tiagocomti\cryptbox\helpers;
 
 /**
  * Description of newPHPClass
