@@ -1,7 +1,6 @@
 {
   "name": "tiagocomti/yii2-cryptbox",
   "type": "yii2-extension",
-
   "description": "Easy cryptbox for you guys",
   "keywords": ["yii2", "crypt", "libsodium", "helper"],
   "license": "BSD-3-Clause",
@@ -19,7 +18,7 @@
   "require": {
     "php": ">=7.2",
     "yiisoft/yii2": "^2.0.13",
-    "ext-sodium": "*"
+    "ext-libsodium": "*"
   },
 
   "autoload": {
