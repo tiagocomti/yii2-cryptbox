@@ -1,13 +1,13 @@
 <?php
-namespace tiagocomti\cryptobox;
+namespace tiagocomti\Cryptbox;
 
-use tiagocomti\cryptobox\helpers\Strings;
+use tiagocomti\Cryptbox\helpers\Strings;
 
 use Yii;
 use yii\db\Exception;
 use yii\web\UnauthorizedHttpException;
 
-class Cryptobox {
+class Cryptbox {
     const PATH_KEYS = __DIR__."/../keys/";
     public $private_key;
     public $public_key;
@@ -317,7 +317,7 @@ class Cryptobox {
     /**
      * @throws \SodiumException
      */
-    public static function getOurKeyPair(): Cryptobox
+    public static function getOurKeyPair(): Cryptbox
     {
         if (!file_exists(self::PATH_KEYS)) {
             mkdir(self::PATH_KEYS, 0700, true);

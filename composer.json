@@ -1,9 +1,9 @@
 {
-  "name": "tiagocomti/yii2-cryptobox",
+  "name": "tiagocomti/yii2-cryptbox",
   "type": "yii2-extension",
 
-  "description": "Easy cryptobox for you guys",
-  "keywords": ["yii2", "crypto", "libsodium", "helper"],
+  "description": "Easy cryptbox for you guys",
+  "keywords": ["yii2", "crypt", "libsodium", "helper"],
   "license": "BSD-3-Clause",
   "support": {
     "issues": "https://github.com/yiisoft/yii2/issues?labels=ext%3Aimagine",
@@ -24,7 +24,7 @@
 
   "autoload": {
     "psr-4": {
-      "tiagocomti\\cryptobox\\": ""
+      "tiagocomti\\cryptbox\\": ""
     }
   }
 }
