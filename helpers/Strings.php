@@ -126,9 +126,10 @@ class Strings {
      * @param string $byteArray
      * @return string
      */
-    public static function byteArrayToString(string $byteArray): string{
-        $byte_array = json_decode($byteArray, true);
-        return implode(array_map("chr", $byte_array));
+    public static function byteArrayToString($byteArray): string{
+        if(is_object($byteArray))
+            $byteArray = (array) $byteArray;
+        return implode(array_map("chr", $byteArray));
     }
 
     public static function isAppAgf(){
@@ -148,4 +149,31 @@ class Strings {
         return number_format($price, 2, ",", ".");
     }
 
+    public static function hash256($string){
+        return hash('sha256', $string);
+    }
+
+    public static function array_search_by_key($id, $array, $key = "name") {
+        foreach ($array as $k => $val) {
+            if ($val[$key] === $id) {
+                return $k;
+            }
+        }
+        return null;
+    }
+
+    public static function convertTo32Bit(string $string){
+        $string_bit = mb_strlen($string, '8bit');
+        if($string_bit < 32){
+            for($i = $string_bit; $i < 32; $i++){
+                $string.="=";
+            }
+        }else if($string_bit == 32){
+            return $string;
+        }
+        else{
+            $string = substr($string, 0, 32-$string_bit);
+        }
+        return $string;
+    }
 }

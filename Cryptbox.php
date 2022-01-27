@@ -1,6 +1,7 @@
 <?php
 namespace tiagocomti\cryptbox;
 
+use phpDocumentor\Reflection\Types\Self_;
 use tiagocomti\cryptbox\helpers\Strings;
 
 use Yii;
@@ -8,18 +9,23 @@ use yii\db\Exception;
 use yii\web\UnauthorizedHttpException;
 
 class Cryptbox {
-    const PATH_KEYS = __DIR__."/../keys/";
+    const PATH_KEYS = __DIR__."/../../../keys/";
     public $private_key;
     public $public_key;
     public $public_key_hex;
     public $private_key_hex;
     public $key_pair;
+    public $keysPath;
 
     /**
      * @throws \SodiumException
      */
     public function __construct($private_key = false)
     {
+        if(is_resource($private_key)) {
+            $private_key = (stream_get_contents($private_key));
+        }
+
         if(!Strings::isBinary($private_key)){
             $private_key =  sodium_hex2bin($private_key);
         }
@@ -32,8 +38,13 @@ class Cryptbox {
         }
     }
 
+    /**
+     * @return string
+     * @throws Exception
+     */
     public static function getOurSecret(): string{
-        return  Strings::byteArrayToString(Yii::$app->params['secret']);
+        if(!Yii::$app->cryptbox->secret){throw new Exception("We need to set a secret in your web.php");}
+        return  Strings::byteArrayToString(json_decode(Yii::$app->params['secret'], true));
     }
 
     /**
@@ -233,44 +244,50 @@ class Cryptbox {
      * @throws \SodiumException
      */
     public static function decryptFileBySecret($encryptedFile, $password, $chunkSize = 4096){
-        $decrypt = '';
 
-        $fdIn = fopen($encryptedFile, 'rb');
+        if(Yii::$app->cryptbox->enableCache === true && Yii::$app->cache->get($encryptedFile) == false) {
+            $decrypt = '';
 
-        $alg = unpack('C', fread($fdIn, 1))[1];
-        $opsLimit = unpack('P', fread($fdIn, 8))[1];
-        $memLimit = unpack('P', fread($fdIn, 8))[1];
-        $salt = fread($fdIn, SODIUM_CRYPTO_PWHASH_SALTBYTES);
+            $fdIn = fopen($encryptedFile, 'rb');
 
-        $header = fread($fdIn, SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES);
+            $alg = unpack('C', fread($fdIn, 1))[1];
+            $opsLimit = unpack('P', fread($fdIn, 8))[1];
+            $memLimit = unpack('P', fread($fdIn, 8))[1];
+            $salt = fread($fdIn, SODIUM_CRYPTO_PWHASH_SALTBYTES);
 
-        $secretKey = sodium_crypto_pwhash(
-            SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES,
-            $password,
-            $salt,
-            $opsLimit,
-            $memLimit,
-            $alg
-        );
+            $header = fread($fdIn, SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES);
 
-        $stream = sodium_crypto_secretstream_xchacha20poly1305_init_pull($header, $secretKey);
-        do {
-            $chunk = fread($fdIn, $chunkSize + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES);
-            $res = sodium_crypto_secretstream_xchacha20poly1305_pull($stream, $chunk);
+            $secretKey = sodium_crypto_pwhash(
+                SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES,
+                $password,
+                $salt,
+                $opsLimit,
+                $memLimit,
+                $alg
+            );
 
-            if ($res === false) {
-                break;
+            $stream = sodium_crypto_secretstream_xchacha20poly1305_init_pull($header, $secretKey);
+            do {
+                $chunk = fread($fdIn, $chunkSize + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES);
+                $res = sodium_crypto_secretstream_xchacha20poly1305_pull($stream, $chunk);
+
+                if ($res === false) {
+                    break;
+                }
+
+                [$decrypted_chunk, $tag] = $res;
+                $decrypt = $decrypted_chunk;
+            } while (!feof($fdIn) && $tag !== SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
+            $ok = feof($fdIn);
+
+            fclose($fdIn);
+
+            if (!$ok) {
+                die('Invalid/corrupted input');
             }
-
-            [$decrypted_chunk, $tag] = $res;
-            $decrypt = $decrypted_chunk;
-        } while (!feof($fdIn) && $tag !== SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL);
-        $ok = feof($fdIn);
-
-        fclose($fdIn);
-
-        if (!$ok) {
-            die('Invalid/corrupted input');
+            Yii::$app->cache->set($encryptedFile, $decrypt,(Yii::$app->cryptbox->enableCache ?? 600));
+        }else{
+            $decrypt = Yii::$app->cache->get($encryptedFile);
         }
         return $decrypt;
     }
@@ -319,16 +336,17 @@ class Cryptbox {
      */
     public static function getOurKeyPair(): Cryptbox
     {
-        if (!file_exists(self::PATH_KEYS)) {
-            mkdir(self::PATH_KEYS, 0700, true);
+        $pathKeys = (Yii::$app->cryptbox->keysPath)?Yii::$app->cryptbox->keysPath:self::PATH_KEYS;
+        if (!file_exists($pathKeys)) {
+            mkdir($pathKeys, 0700, true);
         }
 
-        if(!file_exists(self::PATH_KEYS."server.key.enc")){
+        if(!file_exists($pathKeys."server.key.enc")){
             $keypair = self::generateKeyPair(self::generateApiKey(time()));
-            self::safeWriteInFile(self::PATH_KEYS."server.key",$keypair->private_key,self::getOurSecret());
+            self::safeWriteInFile($pathKeys."server.key",$keypair->private_key,self::getOurSecret());
             return $keypair;
         }else{
-            $private_key = self::decryptFileBySecret(self::PATH_KEYS."server.key.enc", self::getOurSecret());
+            $private_key = self::decryptFileBySecret($pathKeys."server.key.enc", self::getOurSecret());
             return new self($private_key);
         }
     }
@@ -338,6 +356,16 @@ class Cryptbox {
      */
     public static function generateApiKey($user_digest):string {
         return hash('sha256',"$user_digest".bin2hex(random_bytes(64)));
+    }
+
+    public static function decryptDBPass($cipher){
+        if(Yii::$app->cryptbox->enableCache === true && Yii::$app->cache->get("db_cipher") == false) {
+            $string = Strings::byteArrayToString(json_decode($cipher));
+            Yii::$app->cache->set("db_cipher", $string,(Yii::$app->cryptbox->enableCache ?? 600));
+        }else{
+            $decrypt = Yii::$app->cache->get("db_cipher");
+        }
+        return self::easyDecrypt($string, self::getOurSecret());
     }
 
 
