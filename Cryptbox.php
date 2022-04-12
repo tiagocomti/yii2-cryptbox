@@ -244,8 +244,7 @@ class Cryptbox {
      * @throws \SodiumException
      */
     public static function decryptFileBySecret($encryptedFile, $password, $chunkSize = 4096){
-
-        if(Yii::$app->cryptbox->enableCache === true && Yii::$app->cache->get($encryptedFile) == false) {
+        if(Yii::$app->cryptbox->enableCache === true && Yii::$app->cache->get(base64_encode($encryptedFile)) == false) {
             $decrypt = '';
 
             $fdIn = fopen($encryptedFile, 'rb');
@@ -285,7 +284,7 @@ class Cryptbox {
             if (!$ok) {
                 die('Invalid/corrupted input');
             }
-            Yii::$app->cache->set($encryptedFile, $decrypt,(Yii::$app->cryptbox->enableCache ?? 600));
+            Yii::$app->cache->set(base64_encode($encryptedFile), $decrypt,(Yii::$app->cryptbox->enableCache ?? 600));
         }else{
             $decrypt = Yii::$app->cache->get($encryptedFile);
         }
@@ -359,13 +358,18 @@ class Cryptbox {
     }
 
     public static function decryptDBPass($cipher){
-        if(Yii::$app->cryptbox->enableCache === true && Yii::$app->cache->get("db_cipher") == false) {
-            $string = Strings::byteArrayToString(json_decode($cipher));
-            Yii::$app->cache->set("db_cipher", $string,(Yii::$app->cryptbox->enableCache ?? 600));
-        }else{
-            $decrypt = Yii::$app->cache->get("db_cipher");
+        if(Yii::$app->cryptbox->enableCache === true) {
+            if (Yii::$app->cache->get("db_cipher") === false) {
+                $string = self::easyDecrypt(Strings::byteArrayToString(json_decode($cipher)), self::getOurSecret());
+                Yii::$app->cache->set("db_cipher", $string, (Yii::$app->cryptbox->timeCache) ?: 600);
+            } else {
+                $string = Yii::$app->cache->get("db_cipher");
+            }
         }
-        return self::easyDecrypt($string, self::getOurSecret());
+        else{
+            $string = self::easyDecrypt(Strings::byteArrayToString(json_decode($cipher)), self::getOurSecret());
+        }
+        return $string;
     }
 
 
