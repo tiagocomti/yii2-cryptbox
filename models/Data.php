@@ -2,6 +2,8 @@
 
 namespace tiagocomti\cryptbox\models;
 
+use tiagocomti\cryptbox\helpers\Strings;
+
 class Data
 {
     public $text;
@@ -45,6 +47,9 @@ class Data
      */
     public function setKey($key): void
     {
+        if(Strings::isBinary($key)){
+            $key =  sodium_bin2hex($key);
+        }
         $this->key = $key;
     }
 
@@ -61,6 +66,9 @@ class Data
      */
     public function setNonce($nonce): void
     {
+        if(Strings::isBinary($nonce)){
+            $nonce =  sodium_bin2hex($nonce);
+        }
         $this->nonce = $nonce;
     }
 

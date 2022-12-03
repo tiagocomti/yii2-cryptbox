@@ -376,6 +376,9 @@ class Cryptbox {
 
     public static function encryptSymmetric($text, $secretKey = null): Data{
         $secretKey = ($secretKey)??sodium_crypto_secretbox_keygen();
+        if(!Strings::isBinary($secretKey)){
+            $secretKey =  sodium_hex2bin($secretKey);
+        }
         $secretKeyHex = sodium_bin2hex($secretKey);
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $ciphertext = sodium_crypto_secretbox($text, $nonce, $secretKey);
@@ -395,9 +398,12 @@ class Cryptbox {
      * @throws \SodiumException https://davegebler.com/post/php/php-encryption-the-right-way-with-libsodium
      */
     public static function decryptSymmetric($encryptText, $secretKeyHex): Data{
-        // Grab the base64 encoded message from the database or wherever.
-        $ciphertext = sodium_base642bin($encryptText, SODIUM_BASE64_VARIANT_ORIGINAL);
+        // Grab the base64 encoded message from the database or wherever.\
+        if(!Strings::isBinary($secretKeyHex)){
+            $secretKeyHex =  sodium_hex2bin($secretKeyHex);
+        }
 
+        $ciphertext = sodium_base642bin($encryptText, SODIUM_BASE64_VARIANT_ORIGINAL);
         // Now we need to extract the nonce from the beginning of the message.
         // We simply take the first 24 bytes of the message.
         $nonce = mb_substr($ciphertext, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, '8bit');
