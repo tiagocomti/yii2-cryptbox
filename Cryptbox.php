@@ -372,6 +372,45 @@ class Cryptbox {
         return $string;
     }
 
+    public static function encryptSymmetric($text, $secretKey = null){
+        $secretKey = ($secretKey)??sodium_crypto_secretbox_keygen();
+        $secretKeyHex = sodium_bin2hex($secretKey);
+        $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ciphertext = sodium_crypto_secretbox($text, $nonce, $secretKey);
+        $result = sodium_bin2base64($nonce . $ciphertext, SODIUM_BASE64_VARIANT_ORIGINAL);
+        // Now we overwrite the nonce and secret key with null bytes in memory, to prevent any leakage of sensitive data.
+        sodium_memzero($nonce);
+        sodium_memzero($secretKey);
+        sodium_memzero($secretKeyHex);
+        sodium_memzero($ciphertext);
+        return $result;
 
+    }
 
+    /**
+     * @param $encryptText
+     * @param $secretKeyHex
+     * @return void
+     * @throws \SodiumException https://davegebler.com/post/php/php-encryption-the-right-way-with-libsodium
+     */
+    public static function decryptSymmetric($encryptText, $secretKeyHex){
+        $secretKey = sodium_hex2bin($secretKeyHex);
+        // Grab the base64 encoded message from the database or wherever.
+        $ciphertext = sodium_base642bin($encryptText, SODIUM_BASE64_VARIANT_ORIGINAL);
+
+        // Now we need to extract the nonce from the beginning of the message.
+        // We simply take the first 24 bytes of the message.
+        $nonce = mb_substr($ciphertext, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, '8bit');
+        // And the message is the rest of the ciphertext.
+        $ciphertext = mb_substr($ciphertext, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, null, '8bit');
+
+        // Now we can decrypt the message with the secret key and nonce.
+        $plaintext = sodium_crypto_secretbox_open($ciphertext, $nonce, $secretKey);
+
+        // If the plaintext is false, it means the message was corrupted.
+        if ($plaintext === false) {
+            throw new Exception('Could not decrypt');
+        }
+        return $plaintext;
+    }
 }
