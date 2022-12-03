@@ -60,7 +60,7 @@ class Cryptbox {
     }
 
     public function generateSymmetricKey(): string{
-        return sodium_crypto_secretbox_keygen();
+        return sodium_bin2hex(sodium_crypto_secretbox_keygen());
     }
 
 
