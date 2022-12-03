@@ -383,7 +383,6 @@ class Cryptbox {
         // Now we overwrite the nonce and secret key with null bytes in memory, to prevent any leakage of sensitive data.
         sodium_memzero($nonce);
         sodium_memzero($secretKey);
-        sodium_memzero($secretKeyHex);
         sodium_memzero($ciphertext);
         return new Data($result, $secretKeyHex, $nonce, time());
 
