@@ -4,6 +4,7 @@ namespace tiagocomti\cryptbox;
 use phpDocumentor\Reflection\Types\Self_;
 use tiagocomti\cryptbox\helpers\Strings;
 
+use tiagocomti\cryptbox\models\Data;
 use Yii;
 use yii\db\Exception;
 use yii\web\UnauthorizedHttpException;
@@ -372,7 +373,8 @@ class Cryptbox {
         return $string;
     }
 
-    public static function encryptSymmetric($text, $secretKey = null){
+
+    public static function encryptSymmetric($text, $secretKey = null): Data{
         $secretKey = ($secretKey)??sodium_crypto_secretbox_keygen();
         $secretKeyHex = sodium_bin2hex($secretKey);
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -383,18 +385,17 @@ class Cryptbox {
         sodium_memzero($secretKey);
         sodium_memzero($secretKeyHex);
         sodium_memzero($ciphertext);
-        return $result;
+        return new Data($result, $secretKeyHex, $nonce, time());
 
     }
 
     /**
      * @param $encryptText
      * @param $secretKeyHex
-     * @return void
+     * @return Data
      * @throws \SodiumException https://davegebler.com/post/php/php-encryption-the-right-way-with-libsodium
      */
-    public static function decryptSymmetric($encryptText, $secretKeyHex){
-        $secretKey = sodium_hex2bin($secretKeyHex);
+    public static function decryptSymmetric($encryptText, $secretKeyHex): Data{
         // Grab the base64 encoded message from the database or wherever.
         $ciphertext = sodium_base642bin($encryptText, SODIUM_BASE64_VARIANT_ORIGINAL);
 
@@ -405,12 +406,12 @@ class Cryptbox {
         $ciphertext = mb_substr($ciphertext, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, null, '8bit');
 
         // Now we can decrypt the message with the secret key and nonce.
-        $plaintext = sodium_crypto_secretbox_open($ciphertext, $nonce, $secretKey);
+        $plaintext = sodium_crypto_secretbox_open($ciphertext, $nonce, $secretKeyHex);
 
         // If the plaintext is false, it means the message was corrupted.
         if ($plaintext === false) {
             throw new Exception('Could not decrypt');
         }
-        return $plaintext;
+        return new Data($plaintext, $secretKeyHex, $nonce, time());
     }
 }
