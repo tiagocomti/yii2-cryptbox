@@ -59,7 +59,7 @@ class Cryptbox {
         $this->public_key_hex = sodium_bin2hex($this->public_key);
     }
 
-    public function generateSymmetricKey(): string{
+    public static function generateSymmetricKey(): string{
         return sodium_bin2hex(sodium_crypto_secretbox_keygen());
     }
 
