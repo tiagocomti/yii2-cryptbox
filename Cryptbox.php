@@ -402,6 +402,9 @@ class Cryptbox {
      * @throws \SodiumException https://davegebler.com/post/php/php-encryption-the-right-way-with-libsodium
      */
     public static function decryptSymmetric($encryptText, $secretKeyHex): Data{
+        if(is_resource($encryptText)) {
+            $encryptText = (stream_get_contents($encryptText));
+        }
         // Grab the base64 encoded message from the database or wherever.\
         if(!Strings::isBinary($secretKeyHex)){
             $secretKeyHex =  sodium_hex2bin($secretKeyHex);
