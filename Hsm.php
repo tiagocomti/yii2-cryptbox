@@ -43,7 +43,7 @@ class Hsm {
                 $key = Cryptbox::easyDecrypt($key, Cryptbox::getOurSecret());
                 Yii::$app->cache->set("secret_key_server", $key, (Yii::$app->cryptbox->timeCache) ?: 600000);
             }else{
-                $string = Yii::$app->cache->get("secret_key_server");
+                $key = Yii::$app->cache->get("secret_key_server");
             }
         }else {
             $crend = AwsS3::getCredentialsByFile($this->crendPath . '/' . $this->crendJson);
