@@ -348,6 +348,11 @@ class Cryptbox {
         if(!file_exists($pathKeys."server.key.enc")) {
             if (key_exists('hsm', Yii::$app->getComponents())) {
                 $keypair = Yii::$app->hsm->updateMyKey();
+                if(empty($keypair)){
+                    Yii::error("Não foi locaizado nenhuma chave na aws. vamos gerar outra");
+                    $keypair = self::generateKeyPair(self::generateApiKey(time()));
+                    self::safeWriteInFile($pathKeys . "server.key", $keypair->private_key, self::getOurSecret());
+                }
             } else {
                 $keypair = self::generateKeyPair(self::generateApiKey(time()));
                 self::safeWriteInFile($pathKeys . "server.key", $keypair->private_key, self::getOurSecret());
