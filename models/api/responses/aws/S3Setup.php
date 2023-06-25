@@ -1,7 +1,7 @@
 <?php
 
-namespace tiagocomti\cryptbox\api\responses;
-
+namespace tiagocomti\cryptbox\models\api\responses\aws;
+use tiagocomti\cryptbox\models\api\responses\BaseResponses;
 class S3Setup extends BaseResponses
 {
     public $secret;

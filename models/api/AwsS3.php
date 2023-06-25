@@ -4,7 +4,7 @@ namespace tiagocomti\cryptbox\models\api;
 
 
 use Aws\Command;
-use tiagocomti\cryptbox\api\responses\S3Setup;
+use tiagocomti\cryptbox\models\api\responses\aws\S3Setup;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
