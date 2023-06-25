@@ -126,9 +126,10 @@ class Strings {
      * @param string $byteArray
      * @return string
      */
-    public static function byteArrayToString($byteArray): string{
-        if(is_object($byteArray))
-            $byteArray = (array) $byteArray;
+    public static function byteArrayToString($byteArray){
+        if(!is_array($byteArray)) {
+            $byteArray = json_decode($byteArray, true);
+        }
         return implode(array_map("chr", $byteArray));
     }
 

@@ -45,7 +45,7 @@ class Cryptbox {
      */
     public static function getOurSecret(): string{
         if(!Yii::$app->cryptbox->secret){throw new Exception("We need to set a secret in your web.php");}
-        return  Strings::byteArrayToString(json_decode(Yii::$app->params['secret'], true));
+        return  Strings::byteArrayToString(json_decode(Yii::$app->cryptbox->secret, true));
     }
 
     /**
