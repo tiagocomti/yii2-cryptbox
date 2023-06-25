@@ -345,14 +345,16 @@ class Cryptbox {
             mkdir($pathKeys, 0700, true);
         }
 
-        if(!file_exists($pathKeys."server.key.enc")){
-            $keypair = self::generateKeyPair(self::generateApiKey(time()));
-            self::safeWriteInFile($pathKeys."server.key",$keypair->private_key,self::getOurSecret());
-            return $keypair;
-        }else{
-            $private_key = self::decryptFileBySecret($pathKeys."server.key.enc", self::getOurSecret());
-            return new self($private_key);
+        if(!file_exists($pathKeys."server.key.enc")) {
+            if (key_exists('hsm', Yii::$app->getComponents())) {
+                $keypair = Yii::$app->hsm->updateMyKey();
+            } else {
+                $keypair = self::generateKeyPair(self::generateApiKey(time()));
+                self::safeWriteInFile($pathKeys . "server.key", $keypair->private_key, self::getOurSecret());
+            }
         }
+        $private_key = self::decryptFileBySecret($pathKeys."server.key.enc", self::getOurSecret());
+        return new self($private_key);
     }
 
     /**

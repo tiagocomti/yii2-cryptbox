@@ -54,5 +54,6 @@ class Hsm {
         $myfile = fopen(Yii::$app->cryptbox->keysPath."server.key.enc", "w+");
         fwrite($myfile, $key);
         fclose($myfile);
+        return $key;
     }
 }

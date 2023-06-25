@@ -13,7 +13,7 @@ use Aws\S3\ObjectUploader;
 /**
  * Description of AwsS3
  *
- * @author Carlos Alberto FH
+ * @author Tiago Alexandre
  */
 class AwsS3 {
 
