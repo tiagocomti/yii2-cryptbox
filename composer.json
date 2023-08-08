@@ -19,7 +19,7 @@
     "php": ">=7.2 || ^8.1 || ^8.2",
     "yiisoft/yii2": "^2.0.13",
     "ext-sodium": "*",
-    "aws/aws-sdk-php": "^3.238"
+    "aws/aws-sdk-php": "^3.277.10"
   },
 
   "autoload": {
