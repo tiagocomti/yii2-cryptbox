@@ -17,6 +17,9 @@ class Cryptbox {
     public $private_key_hex;
     public $key_pair;
     public $keysPath;
+    public $secret;
+    public $enableCache;
+    public $timeCache;
 
     /**
      * @throws \SodiumException
