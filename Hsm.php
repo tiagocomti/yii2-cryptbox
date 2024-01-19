@@ -48,7 +48,7 @@ class Hsm {
             if (Yii::$app->cache->get($item_name) === false) {
                 $crend = AwsS3::getCredentialsByFile($this->crendPath.'/'.$this->crendJson);
                 $key = AwsS3::getAuthenticatedIten($crend, "hsm/keys/" . $item_name);
-                if(empty($key)){
+                if($key === false){
                     throw new \Exception("Falha ao localizar chave ". $item_name." no bucket");
                 }
                 $key = Cryptbox::easyDecrypt($key, Cryptbox::getOurSecret());
